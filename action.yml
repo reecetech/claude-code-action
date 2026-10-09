@@ -53,6 +53,20 @@ inputs:
     required: false
     default: ""
 
+  # Optional repository/github override configuration
+  repo_name:
+    description: "Repository name (without the organization slug)"
+    required: false
+    default: ${{ github.event.repository.name }}
+  repo_owner:
+    description: "Repository owner (organization slug)"
+    required: false
+    default: ${{ github.event.repository.owner.login }}
+  pr_number:
+    description: "Pull request number"
+    required: false
+    default: ${{ github.event.pull_request.number || github.event.issue.number }}
+
   # Claude Code configuration
   prompt:
     description: "Instructions for Claude. Can be a direct prompt or custom template."
@@ -433,9 +447,9 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ steps.run.outputs.github_token || inputs.github_token || github.token }}
-        REPO_OWNER: ${{ github.event.repository.owner.login }}
-        REPO_NAME: ${{ github.event.repository.name }}
-        PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+        REPO_OWNER: ${{ inputs.repo_owner }}
+        REPO_NAME: ${{ inputs.repo_name }}
+        PR_NUMBER: ${{ inputs.pr_number }}
         ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
       run: |
         BUN_BIN="${GITHUB_ACTION_PATH}/bin/bun"
