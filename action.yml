@@ -57,15 +57,15 @@ inputs:
   repo_name:
     description: "Repository name (without the organization slug)"
     required: false
-    default: ${{ github.event.repository.name }}
+    default: ""
   repo_owner:
     description: "Repository owner (organization slug)"
     required: false
-    default: ${{ github.event.repository.owner.login }}
+    default: ""
   pr_number:
     description: "Pull request number"
     required: false
-    default: ${{ github.event.pull_request.number || github.event.issue.number }}
+    default: ""
 
   # Claude Code configuration
   prompt:
@@ -301,6 +301,7 @@ runs:
           run ${GITHUB_ACTION_PATH}/src/entrypoints/run.ts
       env:
         # Prepare inputs
+        GH_REPO: ${{ inputs.repo_name && format('{0}/{1}', inputs.repo_owner, inputs.repo_name) || '' }}
         MODE: ${{ inputs.mode }}
         PROMPT: ${{ inputs.prompt }}
         TRIGGER_PHRASE: ${{ inputs.trigger_phrase }}
@@ -447,9 +448,9 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ steps.run.outputs.github_token || inputs.github_token || github.token }}
-        REPO_OWNER: ${{ inputs.repo_owner }}
-        REPO_NAME: ${{ inputs.repo_name }}
-        PR_NUMBER: ${{ inputs.pr_number }}
+        REPO_OWNER: ${{ inputs.repo_owner || github.event.repository.owner.login }}
+        REPO_NAME: ${{ inputs.repo_name || github.event.repository.name }}
+        PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number || github.event.issue.number }}
         ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
       run: |
         BUN_BIN="${GITHUB_ACTION_PATH}/bin/bun"
